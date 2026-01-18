@@ -31,7 +31,7 @@ function TotalPanel({totalResine}: TotalPanelProps) {
                                 <p className="text-xl md:text-3xl font-bold">
                                     { unit == 'm' ?
                                         `${(length * width).toFixed(2)} m²` :
-                                        `${((length * width) / 10000).toFixed(2)} cm²`
+                                        `${(length * width).toFixed(2)} cm²`
                                     }
                                 </p>
                             </div>
