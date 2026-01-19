@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { PlanContext } from "../App"; // Ajusta la ruta según tu estructura
 import type {Layer, LayerType} from "../App";
+import * as React from "react";
 
 interface LayerManagerProps {
     layers: Layer[];
@@ -21,10 +22,6 @@ export function LayerManager({ layers, onLayersChange }: LayerManagerProps) {
 
     const calculateLayerDetails = (layer: Layer) => {
         if (layer.type === 'varnish') {
-            // Lógica Top Coat: 1 galón (3785ml) rinde 40m2
-            // Proporcional al espesor si fuera necesario, pero usualmente es por área.
-            // Si el espesor influye: (area / 40) * 3785 * (layer.thickness / espesor_base)
-            // Aquí lo haremos por área estándar:
             const totalMl = (areaInM2 / 40) * 3785;
             return { totalMl };
         }
@@ -37,9 +34,31 @@ export function LayerManager({ layers, onLayersChange }: LayerManagerProps) {
         const weightB = totalParts > 0 ? (totalWeight * partB) / totalParts : 0;
         const quartzWeight = layer.quartzPercentage ? (totalWeight * layer.quartzPercentage) / 100 : 0;
 
-        return { weightA, weightB, quartzWeight, partA, partB };
+        return { weightA, weightB, quartzWeight, partA, partB, totalWeight };
     };
 
+    const addColor = (layerId: string) => {
+        const layer = layers.find(l => l.id === layerId);
+        if (!layer) return;
+        const currentColors = layer.colors || [];
+        updateLayer(layerId, {
+            colors: [...currentColors, { id: crypto.randomUUID(), name: `Color ${currentColors.length + 1}`, percentage: 0 }]
+        });
+    };
+
+    const updateColor = (layerId: string, colorId: string, updates: any) => {
+        const layer = layers.find(l => l.id === layerId);
+        if (!layer) return;
+        const newColors = layer.colors?.map(c => c.id === colorId ? { ...c, ...updates } : c);
+        updateLayer(layerId, { colors: newColors });
+    };
+
+    const removeColor = (layerId: string, colorId: string) => {
+        const layer = layers.find(l => l.id === layerId);
+        if (!layer) return;
+        updateLayer(layerId, { colors: layer.colors?.filter(c => c.id !== colorId) });
+    };
+    
     const addLayer = (e: React.MouseEvent) => {
         e.preventDefault();
         const newLayer: Layer = {
@@ -70,7 +89,7 @@ export function LayerManager({ layers, onLayersChange }: LayerManagerProps) {
                 <button
                     type="button"
                     onClick={addLayer}
-                    className="bg-cyan-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-cyan-700 transition-colors shadow-sm"
+                    className="cursor-pointer bg-cyan-900 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-cyan-700 transition-colors shadow-sm"
                 >
                     + Añadir Capa
                 </button>
@@ -118,8 +137,9 @@ export function LayerManager({ layers, onLayersChange }: LayerManagerProps) {
                                     </label>
                                     <input
                                         type="number"
+                                        min="0"
                                         step="0.1"
-                                        value={layer.thickness}
+                                        value={layer.thickness || ''}
                                         onChange={(e) => updateLayer(layer.id, { thickness: parseFloat(e.target.value) || 0 })}
                                         className="w-full text-lg font-semibold outline-none border-b border-slate-100 focus:border-cyan-500"
                                     />
@@ -132,33 +152,98 @@ export function LayerManager({ layers, onLayersChange }: LayerManagerProps) {
                                 )}
                             </div>
 
-                            <div className="md:col-span-2 bg-slate-50 rounded-2xl p-4 flex flex-col justify-center border border-slate-100">
-                                {layer.type === 'varnish' ? (
-                                    <div className="text-center">
-                                        <p className="text-[10px] font-bold uppercase text-slate-500 mb-1">Rendimiento Estimado (40m²/gal)</p>
-                                        <p className="text-3xl font-bold text-slate-800">{formatVolume(details.totalMl! * layer.thickness)}</p>
-                                        <p className="text-xs text-slate-400 mt-1">Basado en {areaInM2.toFixed(2)} m²</p>
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div>
-                                            <p className="text-[10px] font-bold uppercase text-cyan-600 mb-1">Comp. A ({details.partA})</p>
-                                            <p className="text-xl font-bold text-cyan-900">{formatWeight(details.weightA!)}</p>
+                            <div className="md:col-span-2 space-y-4">
+                                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                                    {layer.type === 'varnish' ? (
+                                        <div className="text-center">
+                                            <p className="text-[10px] font-bold uppercase text-slate-500 mb-1">Rendimiento Estimado (40m²/gal)</p>
+                                            <p className="text-3xl font-bold text-slate-800">{formatVolume(details.totalMl! * layer.thickness)}</p>
+                                            <p className="text-xs text-slate-400 mt-1">Basado en {areaInM2.toFixed(2)} m²</p>
                                         </div>
-                                        <div>
-                                            <p className="text-[10px] font-bold uppercase text-cyan-600 mb-1">Comp. B ({details.partB})</p>
-                                            <p className="text-xl font-bold text-cyan-900">{formatWeight(details.weightB!)}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-bold uppercase text-cyan-600 mb-1">Total</p>
-                                            <p className="text-xl font-bold text-cyan-900">{formatWeight(details.weightB!+details.weightA!)}</p>
-                                        </div>
-                                        {details.quartzWeight! > 0 && (
-                                            <div className="col-span-2 pt-2 border-t border-cyan-100">
-                                                <p className="text-[10px] font-bold uppercase text-orange-600 mb-1">Cuarzo ({layer.quartzPercentage}%)</p>
-                                                <p className="text-lg font-bold text-orange-900">{formatWeight(details.quartzWeight!)}</p>
+                                    ) : (
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div>
+                                                <p className="text-[10px] font-bold uppercase text-cyan-600 mb-1">Comp. A ({details.partA})</p>
+                                                <p className="text-xl font-bold text-cyan-900">{formatWeight(details.weightA!)}</p>
                                             </div>
-                                        )}
+                                            <div>
+                                                <p className="text-[10px] font-bold uppercase text-cyan-600 mb-1">Comp. B ({details.partB})</p>
+                                                <p className="text-xl font-bold text-cyan-900">{formatWeight(details.weightB!)}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold uppercase text-cyan-600 mb-1">Total</p>
+                                                <p className="text-xl font-bold text-cyan-900">{formatWeight(details.weightB!+details.weightA!)}</p>
+                                            </div>
+                                            {details.quartzWeight! > 0 && (
+                                                <div className="col-span-2 pt-2 border-t border-cyan-100">
+                                                    <p className="text-[10px] font-bold uppercase text-orange-600 mb-1">Cuarzo ({layer.quartzPercentage}%)</p>
+                                                    <p className="text-lg font-bold text-orange-900">{formatWeight(details.quartzWeight!)}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Sección de Colores */}
+                                {layer.type === 'resin' && (
+                                    <div className="bg-white border border-slate-100 rounded-xl p-3">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <h4 className="text-xs font-bold uppercase text-slate-500">Distribución de Colores / Mezclas</h4>
+                                            <button 
+                                                onClick={() => addColor(layer.id)}
+                                                className="text-[10px] bg-cyan-50 text-cyan-700 hover:bg-cyan-100 px-2 py-1 rounded font-bold transition-colors"
+                                            >
+                                                + Añadir Color
+                                            </button>
+                                        </div>
+                                        <div className="space-y-3">
+                                            {layer.colors?.map((color) => {
+                                                const colorTotalWeight = (details.totalWeight! * (color.percentage || 0)) / 100;
+                                                const colorWeightA = (colorTotalWeight * details.partA!) / (details.partA! + details.partB!);
+                                                const colorWeightB = (colorTotalWeight * details.partB!) / (details.partA! + details.partB!);
+
+                                                return (
+                                                    <div key={color.id} className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <input 
+                                                                className="text-sm w-[30%] font-bold bg-transparent border-b border-slate-200 focus:border-cyan-500 outline-none flex-1"
+                                                                value={color.name}
+                                                                onChange={(e) => updateColor(layer.id, color.id, { name: e.target.value })}
+                                                            />
+                                                            <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-md border border-slate-100">
+                                                                <input 
+                                                                    type="number"
+                                                                    className="w-10 text-right text-sm font-black text-cyan-600 bg-transparent outline-none"
+                                                                    value={color.percentage || ''}
+                                                                    onChange={(e) => updateColor(layer.id, color.id, { percentage: parseFloat(e.target.value) || 0 })}
+                                                                />
+                                                                <span className="text-[10px] font-bold text-slate-400">%</span>
+                                                            </div>
+                                                            <button onClick={() => removeColor(layer.id, color.id)} className="text-red-300 hover:text-red-500 transition-colors">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                        
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            <div className="text-center bg-white/50 py-1 rounded">
+                                                                <p className="text-[8px] uppercase font-bold text-slate-400">A ({details.partA})</p>
+                                                                <p className="text-xs font-bold text-slate-700">{formatWeight(colorWeightA)}</p>
+                                                            </div>
+                                                            <div className="text-center bg-white/50 py-1 rounded">
+                                                                <p className="text-[8px] uppercase font-bold text-slate-400">B ({details.partB})</p>
+                                                                <p className="text-xs font-bold text-slate-700">{formatWeight(colorWeightB)}</p>
+                                                            </div>
+                                                            <div className="text-center bg-cyan-100/50 py-1 rounded border border-cyan-100">
+                                                                <p className="text-[8px] uppercase font-bold text-cyan-600">Total</p>
+                                                                <p className="text-xs font-black text-cyan-700">{formatWeight(colorTotalWeight)}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 )}
                             </div>

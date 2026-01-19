@@ -13,7 +13,8 @@ export interface Layer {
     type: LayerType;
     consumptionPerM2PerMm: number;
     ratio: Ratios; // ej: "2:1"
-    quartzPercentage?: number; // 0 a 100
+    quartzPercentage?: number;
+    colors?: { id: string; name: string; percentage: number }[];// 0 a 100
 }
 // Crear un contexto para compartir las dimensiones entre rutas
 export const PlanContext = createContext({
@@ -24,7 +25,10 @@ export const PlanContext = createContext({
     setWidth: (_value: number) => {},
     setUnit: (_value: 'm' | 'cm') => {},
     ratio : '2:1' as Ratios,
-    setRatio: (_value: Ratios) => {}
+    setRatio: (_value: Ratios) => {},
+    reset : false,
+    setReset : (_value : boolean) => {},
+    handleReset : () => {}
 });
 
 function App() {
@@ -32,28 +36,38 @@ function App() {
     const [width, setWidth] = useState<number>(0);
     const [unit, setUnit] = useState<'m' | 'cm'>('m');
     const [ratio, setRatio] = useState<Ratios>('2:1');
+    const [reset, setReset] = useState<boolean>(false);
+
+    const handleReset = () => {
+        setLength(0);
+        setWidth(0);
+        setUnit('m');
+        setRatio('2:1');
+        setReset(!reset);
+    };
 
     const totalArea : number = length * width;
 
     return (
-        <PlanContext.Provider value={{ length, width, unit, setLength, setWidth, setUnit, ratio, setRatio }}>
+        <PlanContext.Provider value={{ length, width, unit, setLength, setWidth, setUnit, ratio, setRatio, reset , setReset, handleReset }}>
             <div className="bg-cyan-700 w-full min-h-screen">
                 <div className="w-[95%] md:w-[60%] mx-auto py-4">
                     <Header />
                     <div className="mt-4 bg-white rounded-lg h-[calc(100vh-120px)] overflow-auto shadow-2xl">
                         <div className="mb-4 p-4 border-b border-slate-100">
                             <div className="flex justify-between items-center mb-4">
+
                                 <h2 className="text-xl font-bold">Dimensiones</h2>
                                 <div className="flex bg-slate-100 p-1 rounded-lg">
                                     <button
                                         onClick={() => setUnit('m')}
-                                        className={`px-4 py-1 rounded-md text-sm font-bold transition-colors ${unit === 'm' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500'}`}
+                                        className={`px-4 py-1 cursor-pointer rounded-md text-sm font-bold transition-colors ${unit === 'm' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500'}`}
                                     >
                                         Metros
                                     </button>
                                     <button
                                         onClick={() => setUnit('cm')}
-                                        className={`px-4 py-1 rounded-md text-sm font-bold transition-colors ${unit === 'cm' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500'}`}
+                                        className={`px-4 py-1 cursor-pointer rounded-md text-sm font-bold transition-colors ${unit === 'cm' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500'}`}
                                     >
                                         cm
                                     </button>
@@ -65,19 +79,19 @@ function App() {
                                 <div className="flex bg-slate-100 p-1 rounded-lg">
                                     <button
                                         onClick={() => setRatio('2:1')}
-                                        className={`px-4 py-1 rounded-md text-sm font-bold transition-colors ${ratio === '2:1' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500'}`}
+                                        className={`px-4 py-1 cursor-pointer rounded-md text-sm font-bold transition-colors ${ratio === '2:1' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500'}`}
                                     >
                                         2:1
                                     </button>
                                     <button
                                         onClick={() => setRatio('1:1')}
-                                        className={`px-4 py-1 rounded-md text-sm font-bold transition-colors ${ratio === '1:1' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500'}`}
+                                        className={`px-4 py-1 cursor-pointer rounded-md text-sm font-bold transition-colors ${ratio === '1:1' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500'}`}
                                     >
                                         1:1
                                     </button>
                                     <button
                                         onClick={() => setRatio('3:1')}
-                                        className={`px-4 py-1 rounded-md text-sm font-bold transition-colors ${ratio === '3:1' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500'}`}
+                                        className={`px-4 py-1 cursor-pointer rounded-md text-sm font-bold transition-colors ${ratio === '3:1' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500'}`}
                                     >
                                         3:1
                                     </button>

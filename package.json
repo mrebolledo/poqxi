@@ -11,6 +11,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
+  "homepage": "https://mrebolledo.github.io/poqxi",
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "react": "^19.2.0",
@@ -32,6 +33,5 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4"
-  },
-  "homepage": "https://github.com/mrebolledo/poqxi.git"
+  }
 }
