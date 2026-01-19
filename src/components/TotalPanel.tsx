@@ -21,7 +21,7 @@ function TotalPanel({totalResine}: TotalPanelProps) {
     return (
         <>
             <div className="h-24 md:hidden" aria-hidden="true" />
-            <div className="fixed bottom-0 left-0 w-full z-50 md:sticky md:mt-auto ">
+            <div className="fixed bottom-1 left-0 w-full z-50 md:sticky md:mt-auto ">
                 {/* Contenedor con fondo y sombra superior para el móvil */}
                 <div className="bg-white p-4 shadow-lg md:shadow-0 md:bg-transparent md:shadow-none md:p-0">
                     <div className="bg-white text-slate-800 md:text-white md:bg-cyan-900 p-5 rounded-xl  md:rounded-lg max-w-7xl mx-auto">
