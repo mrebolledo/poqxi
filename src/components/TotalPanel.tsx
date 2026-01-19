@@ -6,7 +6,7 @@ type TotalPanelProps = {
 }
 
 function TotalPanel({totalResine}: TotalPanelProps) {
-    const { length, width,  unit, ratio,handleReset} = useContext(PlanContext);
+    const { length, width,  unit, ratio,handleReset, handlePdfTrigger} = useContext(PlanContext);
     const [partA, partB] = ratio.split(':').map(Number);
     const totalParts : number = partA + partB;
     const weightA : number = (totalResine * partA) / totalParts;
@@ -18,13 +18,14 @@ function TotalPanel({totalResine}: TotalPanelProps) {
             : `${grams.toFixed(0)} g`;
     };
 
+
     return (
         <>
-            <div className="h-34 md:hidden" aria-hidden="true" />
+            <div className="h-40 md:hidden" aria-hidden="true" />
             <div className="fixed bottom-0 md:bottom-1 left-0 w-full z-50 md:sticky md:mt-auto ">
                 {/* Contenedor con fondo y sombra superior para el móvil */}
-                <div className="bg-white p-4 shadow-lg md:shadow-0 md:bg-transparent md:shadow-none md:p-0">
-                    <div className="bg-white text-slate-800 md:text-white md:bg-cyan-900 p-5 rounded-xl  md:rounded-lg max-w-7xl mx-auto">
+                <div className="bg-white p-1 md:p-4 shadow-[0_-6px_4px_rgba(0,0,0,0.1)] md:shadow-0 md:bg-transparent md:shadow-none md:p-0">
+                    <div className="bg-white text-slate-800 md:text-white md:bg-cyan-900 px-5 py-2 md:p-5 rounded-xl  md:rounded-lg max-w-7xl mx-auto">
                         <div className={"grid grid-cols-2 md:grid-cols-4 gap-4"}>
                             <div>
                                 <p className="text-xs md:text-lg opacity-90 uppercase tracking-wider font-semibold">Área total</p>
@@ -54,10 +55,16 @@ function TotalPanel({totalResine}: TotalPanelProps) {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex justify-end mt-4">
+                        <div className="grid grid-cols-2 gap-3 justify-end mt-4">
+                            <button
+                                onClick={() => handlePdfTrigger()}
+                                className="cursor-pointer md:hidden bg-red-800 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-red-900 transition-colors shadow-sm w-full"
+                            >
+                                PDF
+                            </button>
                             <button
                                 onClick={() => handleReset()}
-                                className="cursor-pointer md:hidden bg-cyan-900 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-cyan-700 transition-colors shadow-sm w-full"
+                                className="cursor-pointer md:hidden bg-yellow-600 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-yellow-900 transition-colors shadow-sm w-full"
                             >
                                 Reiniciar valores
                             </button>

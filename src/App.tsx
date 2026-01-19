@@ -28,7 +28,9 @@ export const PlanContext = createContext({
     setRatio: (_value: Ratios) => {},
     reset : false,
     setReset : (_value : boolean) => {},
-    handleReset : () => {}
+    handleReset : () => {},
+    handlePdfTrigger : () => {},
+    pdftrigger : null as number | null
 });
 
 function App() {
@@ -37,6 +39,11 @@ function App() {
     const [unit, setUnit] = useState<'m' | 'cm'>('m');
     const [ratio, setRatio] = useState<Ratios>('2:1');
     const [reset, setReset] = useState<boolean>(false);
+    const [pdftrigger, setPdftrigger] = useState<number | null>(null);
+
+    const handlePdfTrigger = () => {
+        setPdftrigger(Date.now()); // Cada click genera un número único (milisegundos)
+    };
 
     const handleReset = () => {
         setLength(0);
@@ -49,7 +56,7 @@ function App() {
     const totalArea : number = length * width;
 
     return (
-        <PlanContext.Provider value={{ length, width, unit, setLength, setWidth, setUnit, ratio, setRatio, reset , setReset, handleReset }}>
+        <PlanContext.Provider value={{ length, width, unit, setLength, setWidth, setUnit, ratio, setRatio, reset , setReset, handleReset,  handlePdfTrigger, pdftrigger }}>
             <div className="bg-cyan-700 w-full min-h-screen">
                 <div className="w-[95%] md:w-[60%] mx-auto py-4">
                     <Header />
