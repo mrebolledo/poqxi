@@ -110,20 +110,23 @@ function TierCalculator({initialLayers} : TierCalculatorProps) {
         doc.save(`Presupuesto_${date.replace(/\//g, '-')}.pdf`);
     };
 
-    const lastProcessedTrigger = useRef<number | null>(null);
+    // Al inicializar el Ref, le damos el valor que tiene el contexto en ese instante.
+    // De esta forma, 'lastProcessedTrigger' ya conoce el pasado y no lo tratará como nuevo.
+    const lastProcessedTrigger = useRef<number | null>(pdftrigger);
+
 
     useEffect(() => {
-        // 1. Si el trigger es null (inicio), no hacemos nada
-        if (!pdftrigger) return;
+        // 1. Si no hay trigger o es el mismo que ya conocemos al montar/actualizar, ignorar
+        if (!pdftrigger || pdftrigger === lastProcessedTrigger.current) {
+            // Actualizamos el ref por si acaso para mantener la sincronía silenciosa
+            lastProcessedTrigger.current = pdftrigger;
+            return;
+        }
 
-        // 2. Si el ID del trigger es el mismo que ya procesamos, lo ignoramos
-        // Esto evita que se descargue al navegar de regreso a esta pestaña
-        if (pdftrigger === lastProcessedTrigger.current) return;
-
-        // 3. Si llegamos aquí, es un nuevo click real
+        // 2. Si llegamos aquí, es porque pdftrigger cambió a un valor nuevo DESPUÉS del montaje
         generatePDF();
 
-        // 4. Marcamos este ID como procesado
+        // 3. Marcar como procesado
         lastProcessedTrigger.current = pdftrigger;
 
     }, [pdftrigger]);
