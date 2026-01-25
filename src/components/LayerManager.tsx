@@ -22,9 +22,11 @@ export function LayerManager({ layers, onLayersChange }: LayerManagerProps) {
 
     const calculateLayerDetails = (layer: Layer) => {
         if (layer.type === 'varnish') {
-            const totalMl = (areaInM2 / 40) * 3785;
+            // 1 mm de espesor = 1 litro por m²
+            const totalMl = areaInM2 * layer.thickness * 1000;
             return { totalMl };
         }
+
 
         const totalWeight = areaInM2 * layer.thickness * layer.consumptionPerM2PerMm;
         const [partA, partB] = ratio.split(':').map(Number);
@@ -156,8 +158,8 @@ export function LayerManager({ layers, onLayersChange }: LayerManagerProps) {
                                 <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
                                     {layer.type === 'varnish' ? (
                                         <div className="text-center">
-                                            <p className="text-[10px] font-bold uppercase text-slate-500 mb-1">Rendimiento Estimado (40m²/gal)</p>
-                                            <p className="text-3xl font-bold text-slate-800">{formatVolume(details.totalMl! * layer.thickness)}</p>
+                                            <p className="text-[10px] font-bold uppercase text-slate-500 mb-1">Rendimiento Estimado (1m²/L)</p>
+                                            <p className="text-3xl font-bold text-slate-800">{formatVolume(details.totalMl!)}</p>
                                             <p className="text-xs text-slate-400 mt-1">Basado en {areaInM2.toFixed(2)} m²</p>
                                         </div>
                                     ) : (
